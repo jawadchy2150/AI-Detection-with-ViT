@@ -1,0 +1,25 @@
+import pandas as pd
+import os
+from torch.utils.data import Dataset
+from PIL import Image
+
+class TextImageDataset(Dataset):
+    def __init__(self, csv_file, image_dir, split, transform = None):
+        self.df = pd.read_csv(csv_file)
+        self.image_dir = image_dir
+        self.transform = transform
+        self.df = self.df[self.df["split"] == split].reset_index(drop=True)
+
+    def __len__(self):
+        return len(self.df)
+    
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        img_path = os.path.join(self.image_dir, row["image_name"])
+        image = Image.open(img_path).convert("RGB")
+        label = int(row["label"])
+
+        if self.transform:
+            image = self.transform(image)
+
+            return image, label
